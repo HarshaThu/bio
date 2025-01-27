@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
-export async function PUT(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -11,17 +11,8 @@ export async function PUT(req: NextRequest) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await req.json();
-    const { name, bio, phone, address } = body;
-
-    const updatedUser = await prisma.user.update({
+    const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      data: {
-        name,
-        bio,
-        phone,
-        address,
-      },
       include: {
         orders: {
           include: {
@@ -38,19 +29,16 @@ export async function PUT(req: NextRequest) {
       }
     });
 
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
     return NextResponse.json({
-      user: {
-        name: updatedUser.name,
-        bio: updatedUser.bio,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        address: updatedUser.address,
-        avatarUrl: updatedUser.avatarUrl,
-      },
-      orders: updatedUser.orders
+      orders: user.orders
     });
+
   } catch (error) {
-    console.error("[PROFILE_UPDATE]", error);
+    console.error("[PROFILE_ORDERS]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

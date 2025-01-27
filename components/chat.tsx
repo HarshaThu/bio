@@ -10,12 +10,12 @@ import {
   ExpandableChatBody,
   ExpandableChatFooter,
 } from "@/components/ui/expandable-chat";
-import { Send, Loader2, Image as ImageIcon, X } from "lucide-react";
+import { Send, Loader2, Image as ImageIcon, X, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 export function ChatComponent() {
   const { data: session } = useSession();
-  const { messages, isLoading, sendMessage } = useChat();
+  const { messages, isLoading, sendMessage, clearChat } = useChat();
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +54,12 @@ export function ChatComponent() {
     setSelectedImage(null);
   };
 
+  const handleRefresh = () => {
+    clearChat();
+    setInput("");
+    setSelectedImage(null);
+  };
+
   return (
     <ExpandableChat position="bottom-right" size="md">
       {!session ? (
@@ -66,90 +72,101 @@ export function ChatComponent() {
       ) : (
         <>
           <ExpandableChatHeader>
-        <h3 className="text-lg font-semibold">AI Assistant</h3>
-      </ExpandableChatHeader>
-      
-      <ExpandableChatBody className="p-4 space-y-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div 
-              className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-muted"
-              }`}
-            >
-              {message.imageUrl && (
-                <div className="mb-2 relative w-full h-[200px] rounded-lg overflow-hidden">
-                  <Image
-                    src={message.imageUrl}
-                    alt="Uploaded image"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              )}
-              <div className={message.role === "assistant" ? "text-sm leading-relaxed" : ""}>
-                {message.content}
-              </div>
+            <div className="flex items-center justify-between w-full">
+              <h3 className="text-lg font-semibold">AI Assistant</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRefresh}
+                className="hover:bg-muted"
+                title="Clear chat"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </ExpandableChatBody>
+          </ExpandableChatHeader>
+      
+          <ExpandableChatBody className="p-4 space-y-4">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div 
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === "user" 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted"
+                  }`}
+                >
+                  {message.imageUrl && (
+                    <div className="mb-2 relative w-full h-[200px] rounded-lg overflow-hidden">
+                      <Image
+                        src={message.imageUrl}
+                        alt="Uploaded image"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className={message.role === "assistant" ? "text-sm leading-relaxed" : ""}>
+                    {message.content}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </ExpandableChatBody>
 
-      <ExpandableChatFooter>
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            disabled={isLoading}
-          />
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            ref={fileInputRef}
-            onChange={handleImageChange}
-          />
-          <div className="flex gap-2">
-            {selectedImage ? (
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                onClick={() => setSelectedImage(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                onClick={handleImageClick}
+          <ExpandableChatFooter>
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 disabled={isLoading}
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
-            )}
-            <Button type="submit" size="icon" disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </form>
+              />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
+              <div className="flex gap-2">
+                {selectedImage ? (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={handleImageClick}
+                    disabled={isLoading}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button type="submit" size="icon" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </form>
           </ExpandableChatFooter>
         </>
       )}

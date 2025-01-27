@@ -1,92 +1,69 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Order } from "@/types/profile";
+import { ProfileForm } from "@/components/profile/profile-form";
+import { ProfileView } from "@/components/profile/profile-view";
+import { OrderHistory } from "@/components/profile/order-history";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function ProfilePage() {
-  const { data: session, update } = useSession();
+  const { data: session } = useSession();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: session?.user?.name || "",
-    bio: "",
-  });
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/profile/update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update profile");
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!session?.user) return;
+      
+      try {
+        const response = await fetch("/api/profile/orders");
+        if (!response.ok) {
+          throw new Error("Failed to fetch orders");
+        }
+        const data = await response.json();
+        setOrders(data.orders);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load order history",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const data = await response.json();
-      await update(data);
+    fetchOrders();
+  }, [session, toast]);
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleProfileUpdate = (updatedOrders: Order[]) => {
+    setOrders(updatedOrders);
+    setIsEditing(false); // Exit edit mode after successful update
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
   };
 
   return (
-    <div className="container max-w-2xl py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Name</label>
-              <Input
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Bio</label>
-              <Textarea
-                value={formData.bio}
-                onChange={(e) =>
-                  setFormData({ ...formData, bio: e.target.value })
-                }
-                placeholder="Tell us about yourself"
-                rows={4}
-              />
-            </div>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Profile"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="container max-w-4xl py-8 space-y-8">
+      {isEditing ? (
+        <ProfileForm 
+          onUpdate={handleProfileUpdate}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : (
+        <ProfileView onEdit={handleEditClick} />
+      )}
+      {isLoading ? (
+        <div className="text-center text-gray-500">Loading order history...</div>
+      ) : (
+        <OrderHistory orders={orders} />
+      )}
     </div>
   );
 }
