@@ -9,11 +9,12 @@ import { OrderHistory } from "@/components/profile/order-history";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [key, setKey] = useState(0); // Add a key to force re-render
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -40,9 +41,10 @@ export default function ProfilePage() {
     fetchOrders();
   }, [session, toast]);
 
-  const handleProfileUpdate = (updatedOrders: Order[]) => {
+  const handleProfileUpdate = async (updatedOrders: Order[]) => {
     setOrders(updatedOrders);
-    setIsEditing(false); // Exit edit mode after successful update
+    setIsEditing(false);
+    setKey(prev => prev + 1); // Force a re-render of ProfileView
   };
 
   const handleEditClick = () => {
@@ -57,7 +59,7 @@ export default function ProfilePage() {
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <ProfileView onEdit={handleEditClick} />
+        <ProfileView key={key} onEdit={handleEditClick} />
       )}
       {isLoading ? (
         <div className="text-center text-gray-500">Loading order history...</div>

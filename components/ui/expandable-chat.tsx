@@ -10,10 +10,10 @@ export type ChatSize = "sm" | "md" | "lg" | "xl" | "full";
 
 const chatConfig = {
   dimensions: {
-    sm: "sm:max-w-sm sm:max-h-[500px]",
-    md: "sm:max-w-md sm:max-h-[600px]",
-    lg: "sm:max-w-lg sm:max-h-[700px]",
-    xl: "sm:max-w-xl sm:max-h-[800px]",
+    sm: "sm:w-[50vw] sm:h-[60vh]",
+    md: "sm:w-[80vw] sm:h-[80vh]",
+    lg: "sm:w-[90vw] sm:h-[85vh]",
+    xl: "sm:w-[95vw] sm:h-[90vh]",
     full: "sm:w-full sm:h-full",
   },
   positions: {

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useRef, useState } from "react";
 import { useChat } from "@/contexts/ChatContext";
 import { Button } from "@/components/ui/button";
@@ -12,6 +10,7 @@ import {
 } from "@/components/ui/expandable-chat";
 import { Send, Loader2, Image as ImageIcon, X, RefreshCw } from "lucide-react";
 import Image from "next/image";
+import { ProductCard } from "./ui/product-card";
 
 export function ChatComponent() {
   const { data: session } = useSession();
@@ -73,7 +72,7 @@ export function ChatComponent() {
         <>
           <ExpandableChatHeader>
             <div className="flex items-center justify-between w-full">
-              <h3 className="text-lg font-semibold">AI Assistant</h3>
+              <h3 className="text-lg font-semibold">Garden Assistant</h3>
               <Button
                 variant="ghost"
                 size="icon"
@@ -88,33 +87,50 @@ export function ChatComponent() {
       
           <ExpandableChatBody className="p-4 space-y-4">
             {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div 
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === "user" 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted"
+              <div key={index}>
+                <div
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {message.imageUrl && (
-                    <div className="mb-2 relative w-full h-[200px] rounded-lg overflow-hidden">
-                      <Image
-                        src={message.imageUrl}
-                        alt="Uploaded image"
-                        fill
-                        className="object-contain"
-                      />
+                  <div 
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                      message.role === "user" 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-muted"
+                    }`}
+                  >
+                    {message.imageUrl && (
+                      <div className="mb-2 relative w-full h-[200px] rounded-lg overflow-hidden">
+                        <Image
+                          src={message.imageUrl}
+                          alt="Uploaded image"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    )}
+                    <div className={message.role === "assistant" ? "text-sm leading-relaxed" : ""}>
+                      {message.content}
                     </div>
-                  )}
-                  <div className={message.role === "assistant" ? "text-sm leading-relaxed" : ""}>
-                    {message.content}
                   </div>
                 </div>
+                {message.suggestedProducts && message.suggestedProducts.length > 0 && (
+                  <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
+                    {message.suggestedProducts.map((product, i) => (
+                      <ProductCard
+                        key={i}
+                        id={product.id}
+                        name={product.name}
+                        description={product.description}
+                        price={product.price}
+                        imageUrl={product.imageUrl}
+                        category={product.category}
+                        compact
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -126,7 +142,7 @@ export function ChatComponent() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Ask me about gardening, plants, or upload a plant photo..."
                 className="flex-1 min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 disabled={isLoading}
               />

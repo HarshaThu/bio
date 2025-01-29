@@ -52,20 +52,22 @@ export const useProfile = () => {
 
       const data = await response.json();
       
-      // Update the session first and wait for it to complete
+      // Update the session with the new user data
       await update({
         ...session,
         user: {
           ...session?.user,
-          ...data.user,
-          // Ensure required NextAuth fields are preserved
-          id: session?.user?.id,
-          role: session?.user?.role,
+          name: data.user.name,
+          bio: data.user.bio,
+          phone: data.user.phone,
+          address: data.user.address,
           email: session?.user?.email,
-        },
+          credit: session?.user?.credit,
+          role: session?.user?.role,
+        }
       });
 
-      // After session is updated, force a form data refresh
+      // Force a form data refresh after session update
       const updatedFormData = {
         name: data.user.name || "",
         bio: data.user.bio || "",

@@ -11,6 +11,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  shortId: string;
   total: number;
   status: string;
   createdAt: string;
@@ -24,4 +25,5 @@ export interface UserProfile {
   phone: string | null;
   address: string | null;
   avatarUrl: string | null;
+  credit: number;
 }

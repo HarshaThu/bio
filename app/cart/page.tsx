@@ -4,11 +4,23 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useCart } from "@/contexts/CartContext"
+import { useCheckout } from "@/hooks/use-checkout"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function CartPage() {
+  const router = useRouter()
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart()
+  const { processCheckout, loading, userCredit } = useCheckout()
+
+  const handleCheckout = async () => {
+    const result = await processCheckout(cart, totalPrice)
+    if (result.success) {
+      clearCart()
+      router.push('/profile') // Redirect to profile to see order
+    }
+  }
 
   if (cart.length === 0) {
     return (
@@ -94,9 +106,17 @@ export default function CartPage() {
         <Separator className="my-8" />
 
         <div className="space-y-4">
-          <div className="flex justify-between text-lg font-semibold">
-            <span>Total</span>
-            <span>${totalPrice.toFixed(2)}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between text-lg">
+              <span>Your Credit</span>
+              <span className={totalPrice > userCredit ? "text-red-600" : "text-green-600"}>
+                ${userCredit.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-lg font-semibold">
+              <span>Total</span>
+              <span>${totalPrice.toFixed(2)}</span>
+            </div>
           </div>
 
           <div className="flex justify-between gap-4">
@@ -104,16 +124,23 @@ export default function CartPage() {
               variant="outline"
               onClick={clearCart}
               className="flex-1"
+              disabled={loading}
             >
               Clear Cart
             </Button>
             <Button
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => alert('Checkout functionality coming soon!')}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400"
+              onClick={handleCheckout}
+              disabled={loading || totalPrice > userCredit || cart.length === 0}
             >
-              Proceed to Checkout
+              {loading ? "Processing..." : "Proceed to Checkout"}
             </Button>
           </div>
+          {totalPrice > userCredit && (
+            <p className="text-red-600 text-sm text-center">
+              Insufficient credit. Please add more credit to your account.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +12,6 @@ interface ProfileViewProps {
 
 export function ProfileView({ onEdit }: ProfileViewProps) {
   const { data: session } = useSession();
-  // Properly type the session user to include our custom fields
   const user = session?.user as unknown as {
     name: string | null;
     email: string;
@@ -21,6 +19,7 @@ export function ProfileView({ onEdit }: ProfileViewProps) {
     phone: string | null;
     address: string | null;
     avatarUrl: string | null;
+    credit: number;
   };
 
   const profile: UserProfile = {
@@ -30,20 +29,8 @@ export function ProfileView({ onEdit }: ProfileViewProps) {
     phone: user?.phone || null,
     address: user?.address || null,
     avatarUrl: user?.avatarUrl || null,
+    credit: user?.credit || 0,
   };
-
-  // Debug session updates
-  useEffect(() => {
-    if (user) {
-      console.log('Profile data:', {
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        phone: user.phone,
-        address: user.address
-      });
-    }
-  }, [user]);
 
   const ProfileSection = ({ title, content }: { title: string; content: string | null }) => (
     <div>
@@ -73,11 +60,20 @@ export function ProfileView({ onEdit }: ProfileViewProps) {
             </div>
           </div>
           <Separator />
-          <div>
-            <h3 className="font-medium text-sm text-gray-500 mb-2">Bio</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {profile.bio || "No bio provided"}
-            </p>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium text-sm text-gray-500 mb-2">Credit Balance</h3>
+              <p className="text-lg font-semibold text-green-600">
+                ${user?.credit?.toFixed(2) || '0.00'}
+              </p>
+            </div>
+            <Separator />
+            <div>
+              <h3 className="font-medium text-sm text-gray-500 mb-2">Bio</h3>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {profile.bio || "No bio provided"}
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>
